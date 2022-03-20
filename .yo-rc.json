@@ -1,0 +1,16 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "version": "1.14.0",
+    "libraryName": "edit-form",
+    "libraryId": "9ca5c2d3-83ad-4fd6-9bce-221ec28c9249",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "EditForm",
+    "solutionShortDescription": "EditForm description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "componentType": "webpart"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "edit-form-client-side-solution",
+    "id": "9ca5c2d3-83ad-4fd6-9bce-221ec28c9249",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.14.0"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "EditForm description"
+      },
+      "longDescription": {
+        "default": "EditForm description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "edit-form Feature",
+        "description": "The feature that activates elements of the edit-form solution.",
+        "id": "1a312df8-5d37-44f6-8b1b-252d548d3287",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/edit-form.sppkg"
+  }
+}
