@@ -7,4 +7,5 @@ export interface IEditFormStates {
     taskExecutor: any[];
     emailTaskExecutor: string;
     urlId: any;
+    IsLoading: boolean;
   }

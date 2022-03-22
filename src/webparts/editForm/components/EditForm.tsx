@@ -14,6 +14,7 @@ export default class EditForm extends React.Component<IEditFormProps, IEditFormS
   constructor(props) {
     super(props);
 
+    // Set States (information managed within the component), When state changes, the component responds by re-rendering
     this.state = {
       taskID: '',
       task: '',
@@ -22,65 +23,92 @@ export default class EditForm extends React.Component<IEditFormProps, IEditFormS
       dueDate: null,
       taskExecutor: [],
       emailTaskExecutor: '',
-      urlId: null
+      urlId: null,
+      IsLoading: false
     };
   }
 
   componentDidMount = () => {
+    // Start Loader
+    this.setState({
+      IsLoading: true
+    });
     this.getPageId();
-    console.log('33');
+    console.log('2');
   }
 
-  componentDidUpdate(prevProps: Readonly<IEditFormProps>, prevState: Readonly<any>, snapshot?: any): void {
-    console.log('Updated', this.state);
-  }
+  // For debugging (prints every update in state)
+  // componentDidUpdate(prevProps: Readonly<IEditFormProps>, prevState: Readonly<any>, snapshot?: any): void {
+  //   console.log('Updated', this.state);
+  // }
 
+  /**
+   * Get item id from url
+   */
   getPageId = () => {
     let url : any = new URL(window.location.href);
     let formId = url.searchParams.get("FormID");
-    console.log('formId', formId);
-    this.setState({ urlId: formId }, () => {
-      this.fetchData();
-      console.log('urlId', this.state.urlId);
-    });
+    this.fetchData(formId);
   }
   
-  fetchData = () => {
+  /**
+   * 
+   * @param id 
+   * @returns item data and set the state
+   */
+  fetchData = (id) => {
     let web = Web(this.props.webURL);
-    web.lists.getById('8414a250-0699-4efa-afcc-f4a34b89498c').items.getById(this.state.urlId)
+    return web.lists.getById('8414a250-0699-4efa-afcc-f4a34b89498c').items.getById(id)
       .get()
       .then(result => {
-        console.log('result', result);
         this.setState({
+          urlId: id,
           taskID: result.ID,
           task: result.Title,
           description: result.Description,
           priority: result.Priority,
           dueDate: result.Due_x0020_date.slice(0,10),
-          taskExecutor: [result.Email_x0020_Task_x0020_Executor]
+          taskExecutor: [result.Email_x0020_Task_x0020_Executor],
+          emailTaskExecutor: result.Email_x0020_Task_x0020_Executor,
+          IsLoading: false
         });
       }).catch(Err => {
         console.error(Err);
       });
   }
 
+  /**
+   * 
+   * @param e 
+   * Handeling input fields changes and set state
+   */
   handleChange = (e: {target: {name: any; value: any; }; }) => {
-    // console.log(e.target.value);
     const newState = { [e.target.name]: e.target.value } as Pick<IEditFormStates, keyof IEditFormStates>;
     this.setState(newState);
   }
 
+  /**
+   * 
+   * @param e 
+   * Handeling select changes and set state
+   */
   handleSelectChange = (e) => {
-    // console.log('e.target',e.target.value);
     this.setState({ priority: e.target.value });
   }
 
+  /**
+   * 
+   * @param items 
+   * Gets items(users) from share point and set state
+   */
   getPeoplePickerItems = (items: any[]) => {
     console.log('Items:', items);
     this.setState({taskExecutor: items, emailTaskExecutor: items[0].secondaryText});
-    // this.setState({taskExecutor: items});
   }
 
+  /**
+   * Updates share point list
+   */
   updateItem = () => {
     let web = Web(this.props.webURL);
     web.lists.getById('8414a250-0699-4efa-afcc-f4a34b89498c').items.getById(this.state.urlId).update({
@@ -92,9 +120,10 @@ export default class EditForm extends React.Component<IEditFormProps, IEditFormS
       Email_x0020_Task_x0020_Executor: this.state.emailTaskExecutor
     }).then(result => {
       alert("Item Updated Successfully");
-      location.href = 'https://projects1.sharepoint.com/sites/Development/Alona/Lists/NewTasks/AllItems.aspx?viewpath=%2Fsites%2FDevelopment%2FAlona%2FLists%2FNewTasks%2FAllItems%2Easpx';
+      location.href = 'https://projects1.sharepoint.com/sites/Development/Alona/Lists/NewTasks/AllItems.aspx';
+    }).catch (Err => {
+      console.error(Err);
     })
-    console.log('state', this.state);
   }
 
 
@@ -102,51 +131,60 @@ export default class EditForm extends React.Component<IEditFormProps, IEditFormS
     return (
       <Container maxWidth="sm">
         <Typography variant="h6" style={{ textAlign: 'center', marginTop: '10px', marginBottom: '10px' }}>Edit Task</Typography>
-        <FormControl style={{ marginTop: '20px' }}>
-          <TextField label="Task" name="task" value={this.state.task} variant="outlined" onChange={this.handleChange} style={{ marginTop: '13px', width: '500px' }}/>
-          <TextField label="Task Description" name="description" value={this.state.description} variant="outlined" onChange={this.handleChange} multiline rows={3} style={{ marginTop: '13px', width: '500px' }}/>
-          <Select
-            label="Priority"
-            name="priority"
-            value={this.state.priority}
-            variant="outlined" 
-            onChange={(e) => {this.handleSelectChange(e)}}
-            style={{ marginTop: '13px', width: '500px' }}
-          >
-            <MenuItem value="High">High</MenuItem>
-            <MenuItem value="Medium">Medium</MenuItem>
-            <MenuItem value="Low">Low</MenuItem>
-          </Select>
-          <TextField
-            id="date"
-            variant="outlined"
-            label="Due Date"
-            type="date"
-            name="dueDate"
-            value={this.state.dueDate}
-            InputLabelProps={{
-              shrink: true,
-            }}
-            style={{ marginTop: '13px', width: '500px' }} 
-            onChange={this.handleChange}
-          />
-          <PeoplePicker
-            context={this.props.context as any}
-            titleText="Task Executor"
-            groupName={''}
-            personSelectionLimit={1}
-            required={false}
-            showHiddenInUI={false}
-            defaultSelectedUsers={this.state.taskExecutor}
-            principalTypes={[PrincipalType.User]}
-            resolveDelay={1000}
-            ensureUser={true}
-            onChange={this.getPeoplePickerItems}
-          />
-        </FormControl>
-        <div style={{ marginTop: '20px' }}>
-          <Button style={{ width: '83px', marginRight: '5px'}} variant="outlined" onClick={this.updateItem} color="primary">Update</Button>
-        </div>
+        { this.state.IsLoading ? 
+          <div style={{ width: '100px', height: '50px', margin: '20px auto', textAlign: 'center', fontWeight: 'bold' }}>
+            Loading...
+          </div> :
+          <div>
+            <FormControl style={{ marginTop: '20px' }}>
+              <TextField label="Task" name="task" value={this.state.task} variant="outlined" onChange={this.handleChange} style={{ marginTop: '13px', width: '500px' }}/>
+              <TextField label="Task Description" name="description" value={this.state.description} variant="outlined" onChange={this.handleChange} multiline rows={3} style={{ marginTop: '13px', width: '500px' }}/>
+              <Select
+                label="Priority"
+                name="priority"
+                value={this.state.priority}
+                variant="outlined" 
+                onChange={(e) => {this.handleSelectChange(e)}}
+                style={{ marginTop: '13px', width: '500px' }}
+              >
+                <MenuItem value="High">High</MenuItem>
+                <MenuItem value="Medium">Medium</MenuItem>
+                <MenuItem value="Low">Low</MenuItem>
+              </Select>
+              <TextField
+                id="date"
+                variant="outlined"
+                label="Due Date"
+                type="date"
+                name="dueDate"
+                value={this.state.dueDate}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                style={{ marginTop: '13px', width: '500px' }} 
+                onChange={this.handleChange}
+              />
+              <PeoplePicker
+                context={this.props.context as any}
+                titleText="Task Executor"
+                groupName={''}
+                personSelectionLimit={1}
+                required={false}
+                showHiddenInUI={false}
+                defaultSelectedUsers={this.state.taskExecutor}
+                principalTypes={[PrincipalType.User]}
+                resolveDelay={1000}
+                ensureUser={true}
+                onChange={this.getPeoplePickerItems}
+              />
+            </FormControl>
+            <div style={{ marginTop: '20px' }}>
+              <Button style={{ width: '83px', marginRight: '5px'}} variant="outlined" onClick={this.updateItem} color="primary">
+                Update
+              </Button>
+            </div>
+          </div>
+        }
       </Container>
     );
   }
